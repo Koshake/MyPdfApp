@@ -1,36 +1,40 @@
 package com.example.mypdfapp.ui
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.mypdfapp.databinding.FragmentMainBinding
 import com.example.mypdfapp.extensions.obtainViewModel
-import com.example.mypdfapp.ui.adapter.PdfAdapter
-import com.example.mypdfapp.ui.base.BaseFragment
-import com.example.mypdfapp.viewmodel.PdfViewModel
+import com.example.mypdfapp.ui.adapter.PdfPagingAdapter
+import com.example.mypdfapp.viewmodel.MainViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
-class MainFragment : BaseFragment<PdfViewModel>() {
+class MainFragment : Fragment() {
 
     companion object {
         fun newInstance() = MainFragment()
 
         private const val AGREEMENT = "https://kotlinlang.org/docs/kotlin-reference.pdf"
 
-        private const val DOCUMENT = "/kotlin-reference.pdf"
-
+        const val DOCUMENT = "/kotlin-reference.pdf"
     }
 
     private var bindingNullable: FragmentMainBinding? = null
 
     private val binding get() = bindingNullable!!
 
-    override lateinit var viewModel: PdfViewModel
+    lateinit var mainViewModel: MainViewModel
 
-    private var adapter : PdfAdapter? = null
+    private val pagingAdapter by lazy {
+        PdfPagingAdapter()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,61 +48,22 @@ class MainFragment : BaseFragment<PdfViewModel>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = obtainViewModel(PdfViewModel.Factory())
+        mainViewModel = obtainViewModel(MainViewModel.Factory())
+        binding.recyclerPdf.adapter = pagingAdapter
 
-        viewModel.stateLiveData.observe(viewLifecycleOwner) { state ->
-            renderData(state)
-        }
-
-        binding.loadButton.setOnClickListener {
-            viewModel.downloadPdfFile(AGREEMENT)
-            Log.d("Tag", "MainFragment clickListener")
-        }
 
         binding.showButton.setOnClickListener {
             val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath  + DOCUMENT
             Log.d("Tag", path)
-            viewModel.renderPages(
-                path,
-                binding.imagePdf.width)
+            lifecycleScope.launch {
+                mainViewModel.getData(path, binding.imagePdf.width).distinctUntilChanged().collectLatest {
+                    pagingAdapter.submitData(it)
+                }
+            }
         }
-        
-        initAdapter()
-    }
 
-    override fun renderSuccess(bitmap: List<Bitmap>) {
-        super.renderSuccess(bitmap)
-        adapter?.let {
-            it.clear()
-            it.fillList(bitmap)
-        }
-    }
-    override fun setLoading(isLoading: Boolean) {
-        if (isLoading) {
-            showLoading()
-        } else {
-            hideLoading()
-        }
-    }
-
-    private fun showLoading() {
-        binding.progressBar.show()
-        binding.progressBar.show()
-    }
-
-    private fun hideLoading() {
-        if (binding.progressBar.isShown) {
-            binding.progressBar.hide()
-        }
-        if (binding.progressBar.isShown) {
-            binding.progressBar.hide()
-        }
-    }
-
-    private fun initAdapter() {
-        if (adapter == null) {
-            adapter = PdfAdapter()
-            binding.recyclerPdf.adapter = adapter
+        binding.loadButton.setOnClickListener {
+            mainViewModel.downloadPdfFile(AGREEMENT)
         }
     }
 }

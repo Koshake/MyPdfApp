@@ -22,4 +22,6 @@ interface AppComponent {
 
     fun inject(entry: PdfViewModel.Factory)
 
+    fun inject(entry: MainViewModel.Factory)
+
 }

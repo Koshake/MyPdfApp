@@ -9,8 +9,6 @@ interface PdfViewRepository {
 
     suspend fun getPdfFromStorage(fileUri: String) : File
 
-    suspend fun renderSinglePage(filePath: String, pageNumber: Int, width: Int) : Bitmap
-
     suspend fun renderAllPages(filePath: String, firstPage: Int, lastPage: Int, width: Int) : List<Bitmap>
 
     fun getPagesCount(filePath: String) : Int

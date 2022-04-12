@@ -12,5 +12,8 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "MyPdfApp"
 include ':app'
+
+includeBuild("BuildScripts/gradle/plugins")
