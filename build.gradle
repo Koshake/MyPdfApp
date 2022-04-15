@@ -13,6 +13,3 @@ ext["buildScriptsDir"] = buildScriptsDir
 staticAnalysis {
     buildScriptDir = buildScriptsDir
 }
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
