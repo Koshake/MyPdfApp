@@ -3,6 +3,7 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
+        jcenter()
     }
 }
 dependencyResolutionManagement {
@@ -16,4 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "MyPdfApp"
 include ':app'
 
-includeBuild("BuildScripts/gradle/plugins")
+includeBuild "BuildScripts/gradle/plugins"
